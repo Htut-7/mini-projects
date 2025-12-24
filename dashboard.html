@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodieGo | Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+.navbar {
+  background-color: #4ACF50;
+  height: 80px;
+  padding: 0 2rem;
+}
+.navbar-brand {
+  font-size: 1.8rem;
+  color: #fff;
+  text-decoration: none;
+}
+.food-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.food-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.price-tag {
+  font-weight: 700;
+  color: #e74c3c;
+}
+.btn-add {
+  background-color: #4ACF50;
+  color: white;
+  border: none;
+}
+.btn-add:hover {
+  background-color: #3da63d;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark mb-4">
+  <div class="container d-flex align-items-center">
+    <a class="navbar-brand fw-bold" href="#">🍔 FoodieGo</a>
+
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <a href="cart.html" class="btn btn-light btn-sm">🛒 Cart</a>
+
+      <div class="dropdown">
+        <a href="#" class="text-white dropdown-toggle fw-semibold"
+           data-bs-toggle="dropdown">
+          <span id="userName">User</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li class="dropdown-item-text fw-bold" id="dropdownUserName"></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item text-danger" href="#" onclick="logout()">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- FOOD LIST -->
+<div class="container">
+  <h2 class="text-center mb-4">Our Menu</h2>
+
+  <div class="row" id="food-container">
+    <div class="col-12 text-center">
+      <div class="spinner-border text-success"></div>
+      <p>Loading food...</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ---------- AUTH CHECK ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user || !user.id) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("userName").textContent = user.name;
+  document.getElementById("dropdownUserName").textContent = user.name;
+
+  loadFoods();
+});
+
+/* ---------- LOAD FOODS ---------- */
+function loadFoods() {
+  fetch("http://127.0.0.1:5000/foods")
+    .then(res => res.json())
+    .then(data => {
+      const foodContainer = document.getElementById("food-container");
+      foodContainer.innerHTML = "";
+
+      if (!data.length) {
+        foodContainer.innerHTML =
+          "<p class='text-center'>No foods available</p>";
+        return;
+      }
+
+      data.forEach(food => {
+        foodContainer.innerHTML += `
+          <div class="col-md-4 mb-4">
+            <div class="card food-card h-100 shadow-sm">
+              <img src="${food.image || 'https://via.placeholder.com/300'}"
+                   class="card-img-top"
+                   style="height:200px; object-fit:cover;">
+              <div class="card-body">
+                <h5 class="card-title">${food.name}</h5>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <span class="price-tag">${food.price} baht</span>
+                  <button class="btn btn-add btn-sm"
+                    onclick="addToCart(${food.id}, '${food.name}', ${food.price})">
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("food-container").innerHTML =
+        "<p class='text-center text-danger'>Failed to load foods</p>";
+    });
+}
+
+/* ---------- CART ---------- */
+function addToCart(id, name, price) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  let item = cart.find(i => i.id === id);
+  if (item) {
+    item.quantity++;
+  } else {
+    cart.push({ id, name, price, quantity: 1 });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert(`${name} added to cart`);
+}
+
+/* ---------- LOGOUT ---------- */
+function logout() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("cart");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

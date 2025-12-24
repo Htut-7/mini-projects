@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodieGo | Login</title>
+  
+  <link rel="stylesheet" href="style.css">
+ 
+</head>
+<body>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        
+        <div class="card login-card shadow-lg p-4">
+          <h3 class="text-center mb-3">Welcome Back</h3>
+          <p class="text-center text-muted mb-4">Login to continue ordering 🍕</p>
+
+          <input id="email" type="email" class="form-control mb-3" placeholder="Email Address">
+          <input id="password" type="password" class="form-control mb-3" placeholder="Password">
+
+          <button class="btn btn-primary w-100" type="button" onclick="login()">
+            Login
+          </button>
+
+          <p class="text-center mt-3">
+            Don't have an account? 
+            <a href="register.html" style="color: rgba(74, 207, 80, 0.2);">Register here</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+function login() {
+  fetch("http://127.0.0.1:5000/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+  if (data.message === "Login successful") {
+
+    // Save user info
+    localStorage.setItem("user", JSON.stringify({
+      id: data.id,
+      name: data.name,
+      role: data.role
+    }));
+
+    // Redirect by role
+    if (data.role === "admin") {
+      window.location.href = "admin.html";
+    } else {
+      window.location.href = "dashboard.html";
+    }
+
+  } else {
+    alert(data.message);
+  }
+});
+}
+</script>
+
+</body>
+</html>
